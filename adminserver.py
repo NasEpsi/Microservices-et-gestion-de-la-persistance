@@ -1,37 +1,40 @@
 from flask import Flask, render_template, redirect, url_for
 from flask import request
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
 
-class Base(DeclarativeBase):
-    pass
+from models import Game
+from database import db
 
-db = SQLAlchemy()
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///adminserver.db"
-    
-class Game(db.Model):
-    
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    title: Mapped[str] = mapped_column(unique=True, nullable=False)
-
-    def __repr__(self):
-        return self.title
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://postgres:password@localhost:5432/loups"
     
 db.init_app(app)
-
 with app.app_context():
     db.create_all()
+
 @app.route("/")
 def index():
     return render_template("index.html")
 
 @app.route("/games")
 def games():
-    list_games = db.session.execute(db.select(Game)).scalars()
+    list_games = db.session.execute(db.select(Game).order_by(Game.title)).scalars()
     return render_template("games.html", games=list_games)
+
+@app.route('/game/<int:game_id>/stop')
+def stop_game(game_id):
+    game_to_stop= db.get_or_404(Game, game_id)
+    game_to_stop.started = False
+    db.session.add(game_to_stop)
+    db.session.commit()
+    return redirect(url_for("games"))
+
+@app.route('/game/<int:game_id>/start')
+def start_game(game_id):
+    game_to_start= db.get_or_404(Game, game_id)
+    game_to_start.started = True
+    db.session.add(game_to_start)
+    db.session.commit()
+    return redirect(url_for("games"))
 
 @app.route("/game", methods=["GET", "POST"])
 def game():

@@ -2,6 +2,13 @@
 
 <ul>
     {% for game in games %}
-    <li>{{game.title}}</li>
+        {% if game.started %}
+            <li>{{game.title}} - {{game.started }} <a href="{{url_for('stop_game', game_id = game.id)}}">Stop</a></li>
+            {% else %}
+                <li>{{game.title}} - {{game.started }} <a href="{{url_for('start_game', game_id = game.id)}}">Start Game</a></li>
+
+        {% endif %}
     {% endfor%}
 </ul>
+
+<a href="{{url_for('game')}}">New game</a>
