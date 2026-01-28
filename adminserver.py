@@ -20,10 +20,17 @@ def games():
     list_games = db.session.execute(db.select(Game).order_by(Game.title)).scalars()
     return render_template("games.html", games=list_games)
 
+@app.route('/api/games')
+def api_games():
+    list_games = db.session.execute(db.select(Game).order_by(Game.title)).scalars()
+    # TODO handle pagination 
+    return [game.to_json() for game in list_games]
+
+
 @app.route('/game/<int:game_id>/stop')
 def stop_game(game_id):
     game_to_stop= db.get_or_404(Game, game_id)
-    game_to_stop.started = False
+    game_to_stop.started = True
     db.session.add(game_to_stop)
     db.session.commit()
     return redirect(url_for("games"))
@@ -46,4 +53,30 @@ def game():
         db.session.commit()
         return redirect(url_for("games"))
     return render_template("game.html")
+
+@app.route('/api/game/<int:game_id>/stop', methods=["PUT","PATCH"])
+def api_stop_game(game_id):
+    game_to_stop= db.get_or_404(Game, game_id)
+    game_to_stop.started = True
+    db.session.add(game_to_stop)
+    db.session.commit()
+    return game_to_stop.to_json()
+
+@app.route('/api/game/<int:game_id>/start')
+def api_start_game(game_id):
+    game_to_start= db.get_or_404(Game, game_id)
+    game_to_start.started = True
+    db.session.add(game_to_start)
+    db.session.commit()
+    return game_to_start.to_json()
+
+@app.route("/api/game", methods=["POST"])
+def api_game():
+    game_json = request.json
+    app.logger.info(game_json)
+    game = Game(title=game.json['title'])
+    db.session.add(game)
+    db.session.commit()
+    return game.to_json()        
+            
             

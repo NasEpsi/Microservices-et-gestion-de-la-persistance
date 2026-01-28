@@ -6,4 +6,4 @@ from sqlalchemy.orm import DeclarativeBase
 class Base(DeclarativeBase):
     pass
 
-db = SQLAlchemy()
+db = SQLAlchemy(model_class=Base)

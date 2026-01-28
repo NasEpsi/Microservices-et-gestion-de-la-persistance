@@ -11,3 +11,11 @@ class Game(db.Model):
 
     def __repr__(self):
         return self.title
+    
+    def to_json(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "started": self.started
+        }
+    
